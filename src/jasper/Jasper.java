@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
 package jasper;
+import org.json.*;
 import static com.bea.xml.stream.SubReader.print;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -76,19 +77,12 @@ public class Jasper {
             Map<String, Object> params = Jasper.queryToMap(httpExchange.getRequestURI().getQuery());
             
             String b64 = getTicketBase64(params);
-            
-            response.append("<html><body style=\"padding:0px;margin:0px;\">");
-            
             if(b64 != null){
-                response.append("<iframe id=\"inlineFrameExample\" title=\"Inline Frame Example\" style=\"position:absolute\" width=\"100%\" height=\"100%\" src=\""+b64+"\"></iframe>");
+                response.append(b64);
             }else{
-                response.append("<h1>Algo salio mal</h1>");
+                response.append("Algo salio mal");
             }
             
-            //params.forEach((key, value) -> response.append(key + " : " + value + "<br/>"));
-
-            response.append("</body></html>");
-
             Jasper.writeResponse(httpExchange, response.toString());
 
         }
@@ -146,12 +140,14 @@ public class Jasper {
                 System.err.println(e.getMessage());
             }
             String query = "";
-            JasperDesign jdesign = null;
             try{
+            JasperDesign jdesign = JRXmlLoader.load(System.getProperty("user.dir")+"/src/jasper/reportes/"+params.get("reporte")+".jrxml");
                 switch ((String)params.get("reporte")){
                     case "ticket":
-                        jdesign = JRXmlLoader.load(System.getProperty("user.dir")+"/src/reportejasper/"+params.get("reporte")+".jrxml");
                         query = "CALL GetTicket("+params.get("p_idVenta")+",'";
+                    break;
+                    case "ReporteVentas":
+                        query = "CALL GetVentasDeCorte('"+params.get("p_idVentas")+"','"+params.get("p_desde")+"','"+params.get("p_hasta")+"','";
                     break;
                 }
                 query += params.get("token")+"');";
